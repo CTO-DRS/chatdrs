@@ -1,0 +1,8 @@
+{
+  "name": "ChatDrs",
+  "description": "تطبيق مراسلة عربي عصري وأنيق، يجمع بين فخامة التصميم وتجربة المستخدم السلسة والمبتكرة.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "entities": {
+    "User": {
+      "collection": "users",
+      "fields": {
+        "userId": { "type": "string", "required": true },
+        "displayName": { "type": "string", "required": true },
+        "status": { "type": "string", "required": false },
+        "isOnline": { "type": "boolean", "required": false },
+        "createdAt": { "type": "timestamp", "required": true },
+        "updatedAt": { "type": "timestamp", "required": true }
+      }
+    },
+    "Chat": {
+      "collection": "chats",
+      "fields": {
+        "chatId": { "type": "string", "required": true },
+        "participantIds": { "type": "list", "required": true },
+        "lastMessage": { "type": "string", "required": true },
+        "lastMessageTime": { "type": "timestamp", "required": false },
+        "lastSenderId": { "type": "string", "required": true },
+        "createdAt": { "type": "timestamp", "required": true },
+        "updatedAt": { "type": "timestamp", "required": true }
+      }
+    },
+    "Message": {
+      "collection": "chats/{chatId}/messages",
+      "fields": {
+        "messageId": { "type": "string", "required": true },
+        "chatId": { "type": "string", "required": true },
+        "senderId": { "type": "string", "required": true },
+        "text": { "type": "string", "required": true },
+        "status": { "type": "string", "required": false },
+        "createdAt": { "type": "timestamp", "required": true }
+      }
+    }
+  }
+}

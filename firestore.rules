@@ -1,0 +1,73 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isValidUser(data) {
+      return data.userId is string &&
+             data.userId == request.auth.uid &&
+             data.displayName is string &&
+             data.displayName.size() > 0 &&
+             data.displayName.size() <= 100;
+    }
+
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create: if isOwner(userId) && isValidUser(request.resource.data);
+      allow update: if isOwner(userId) && isValidUser(request.resource.data);
+      allow delete: if isOwner(userId);
+    }
+
+    function isParticipant(chatData) {
+      return isAuthenticated() && request.auth.uid in chatData.participantIds;
+    }
+
+    function isValidChat(data) {
+      return data.chatId is string &&
+             data.participantIds is list &&
+             data.participantIds.size() >= 1 &&
+             data.participantIds.size() <= 500 &&
+             request.auth.uid in data.participantIds &&
+             data.lastMessage is string &&
+             data.lastMessage.size() <= 2000 &&
+             data.lastSenderId is string;
+    }
+
+    function isValidMessage(data, chatId) {
+      return data.messageId is string &&
+             data.chatId is string &&
+             data.chatId == chatId &&
+             data.senderId is string &&
+             data.senderId == request.auth.uid &&
+             data.text is string &&
+             data.text.size() > 0 &&
+             data.text.size() <= 5000;
+    }
+
+    match /chats/{chatId} {
+      allow read: if isAuthenticated() && (resource == null || request.auth.uid in resource.data.participantIds);
+      allow create: if isAuthenticated() && isValidChat(request.resource.data);
+      allow update: if isAuthenticated() && isParticipant(resource.data) && isValidChat(request.resource.data);
+      allow delete: if isAuthenticated() && isParticipant(resource.data);
+
+      match /messages/{messageId} {
+        allow read: if isAuthenticated() &&
+          request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participantIds;
+        allow create: if isAuthenticated() &&
+          request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participantIds &&
+          isValidMessage(request.resource.data, chatId);
+        allow update: if isAuthenticated() &&
+          resource.data.senderId == request.auth.uid &&
+          isValidMessage(request.resource.data, chatId);
+        allow delete: if isAuthenticated() && resource.data.senderId == request.auth.uid;
+      }
+    }
+  }
+}
